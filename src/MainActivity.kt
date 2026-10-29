@@ -66,6 +66,10 @@ class MainActivity : Activity(), LocationListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Μέγιστη φωτεινότητα μόνο όσο είναι ανοιχτή η εφαρμογή· στην έξοδο το Android επαναφέρει τη δική σου
+        window.attributes = window.attributes.apply {
+            screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
+        }
 
         hud = HudView(this)
         colorIdx = prefs.getInt("color", 0).coerceIn(0, colors.lastIndex)
