@@ -6,7 +6,7 @@
 
     <application
         android:label="HUD Maps"
-        android:icon="@android:drawable/ic_menu_compass"
+        android:icon="@mipmap/ic_launcher"
         android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen">
 
         <activity
