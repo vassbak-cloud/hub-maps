@@ -26,7 +26,17 @@ jobs:
         run: base64 -d keystore.b64 > hud.keystore
 
       - name: Build
-        run: gradle assembleRelease --no-daemon --stacktrace
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle assembleRelease --no-daemon 2>&1 | tee build.log
+
+      - name: Show build errors
+        if: failure()
+        shell: bash
+        run: |
+          msg=$(grep -E "^e: |What went wrong|^> |error:|Could not" -A3 build.log | head -60 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=Build errors::${msg}"
 
       - name: Rename APK
         run: cp build/outputs/apk/release/*.apk hud-maps.apk
