@@ -55,8 +55,9 @@ class HudView(ctx: Context) : View(ctx) {
         for (p in listOf(big, mid, small, dot)) {
             p.color = c
         }
-        big.setShadowLayer(18f, 0f, 0f, c)
-        mid.setShadowLayer(10f, 0f, 0f, c)
+        // Χωρίς λάμψη: καθαρά περιγράμματα, ώστε το διπλό είδωλο του τζαμιού να μη θολώνει τα ψηφία
+        big.clearShadowLayer()
+        mid.clearShadowLayer()
         iconPaint.colorFilter = PorterDuffColorFilter(withAlpha(color), PorterDuff.Mode.SRC_IN)
         iconPaint.alpha = (255 * dim).roundToInt().coerceIn(40, 255)
         invalidate()
