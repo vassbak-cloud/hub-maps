@@ -160,7 +160,7 @@ class HudView(ctx: Context) : View(ctx) {
         if (text.isNullOrEmpty() || maxW <= 0) return
         p.textSize = size
         while (p.measureText(text) > maxW && p.textSize > size * 0.45f) p.textSize *= 0.92f
-        var t = text
+        var t: String = text
         if (p.measureText(t) > maxW) {
             while (t.length > 1 && p.measureText("$t…") > maxW) t = t.dropLast(1)
             t = "$t…"
