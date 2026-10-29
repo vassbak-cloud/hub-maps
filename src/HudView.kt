@@ -117,9 +117,7 @@ class HudView(ctx: Context) : View(ctx) {
             small.textSize = h * 0.06f
             c.drawText("KM/H", w - speedW / 2 - pad / 2, h * 0.45f + small.textSize * 1.4f, small)
 
-            small.textSize = h * 0.075f
-            val bottom = listOfNotNull(NavState.sub, clock()).joinToString("   ·   ")
-            drawFitCenter(c, bottom, w / 2, h * 0.86f, w - 2 * pad, small)
+            drawEta(c, w / 2, h * 0.88f, w - 2 * pad, h * 0.14f)
             drawGpsDot(c, w - pad, pad, h * 0.015f)
         } else {
             // Κάθετα: βέλος + απόσταση πάνω, δρόμος, μεγάλη ταχύτητα, άφιξη κάτω
@@ -132,16 +130,23 @@ class HudView(ctx: Context) : View(ctx) {
             drawFit(c, NavState.text, pad, iconRect.bottom + w * 0.12f, w - 2 * pad, w * 0.08f, mid)
             mid.typeface = bold
 
-            big.textSize = w * 0.38f
-            c.drawText(speedText(), w / 2, h * 0.68f, big)
+            big.textSize = w * 0.36f
+            c.drawText(speedText(), w / 2, h * 0.64f, big)
             small.textSize = w * 0.045f
-            c.drawText("KM/H", w / 2, h * 0.68f + small.textSize * 1.5f, small)
+            c.drawText("KM/H", w / 2, h * 0.64f + small.textSize * 1.5f, small)
 
-            small.textSize = w * 0.06f
-            val bottom = listOfNotNull(NavState.sub, clock()).joinToString("  ·  ")
-            drawFitCenter(c, bottom, w / 2, h * 0.88f, w - 2 * pad, small)
+            drawEta(c, w / 2, h * 0.86f, w - 2 * pad, w * 0.11f)
             drawGpsDot(c, w - pad, pad, w * 0.015f)
         }
+    }
+
+    /** Ώρα άφιξης / χρόνος διαδρομής: μεγάλα και έντονα, η ώρα μόνο αν το Maps δεν δίνει άφιξη. */
+    private fun drawEta(c: Canvas, cx: Float, y: Float, maxW: Float, size: Float) {
+        val line = NavState.sub ?: clock()
+        small.typeface = bold
+        small.textSize = size
+        drawFitCenter(c, line, cx, y, maxW, small)
+        small.typeface = reg
     }
 
     private fun drawIcon(c: Canvas, bmp: Bitmap?, r: RectF) {
