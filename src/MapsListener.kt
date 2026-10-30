@@ -35,12 +35,43 @@ object NavState {
 
 class MapsListener : NotificationListenerService() {
 
-    private val navApps = setOf("com.google.android.apps.maps", "com.waze")
+    companion object {
+        @Volatile var instance: MapsListener? = null
+
+        /** Διαβάζει ξανά την τρέχουσα ειδοποίηση του Maps, χωρίς να περιμένει το Android να μας ειδοποιήσει. */
+        fun poll(): Boolean {
+            val l = instance ?: return false
+            return try {
+                val nav = l.activeNotifications?.filter { it.packageName in NAV_APPS && it.isOngoing }
+                if (nav.isNullOrEmpty()) {
+                    if (NavState.active) NavState.clear()
+                } else {
+                    nav.forEach { l.handle(it) }
+                }
+                true
+            } catch (_: Exception) { false }
+        }
+
+        private val NAV_APPS = setOf("com.google.android.apps.maps", "com.waze")
+    }
+
+    private val navApps = NAV_APPS
+    private var lastSig: String? = null
 
     override fun onListenerConnected() {
+        instance = this
         try {
             activeNotifications?.forEach { handle(it) }
         } catch (_: Exception) { }
+    }
+
+    override fun onListenerDisconnected() {
+        if (instance === this) instance = null
+    }
+
+    override fun onDestroy() {
+        if (instance === this) instance = null
+        super.onDestroy()
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) = handle(sbn)
@@ -49,7 +80,7 @@ class MapsListener : NotificationListenerService() {
         if (sbn.key == NavState.key) NavState.clear()
     }
 
-    private fun handle(sbn: StatusBarNotification) {
+    fun handle(sbn: StatusBarNotification) {
         if (sbn.packageName !in navApps) return
         val n = sbn.notification ?: return
         // Η πλοήγηση εμφανίζεται ως μόνιμη (ongoing) ειδοποίηση· αγνοούμε τις υπόλοιπες
@@ -62,6 +93,11 @@ class MapsListener : NotificationListenerService() {
         val sub = (ex.getCharSequence(Notification.EXTRA_SUB_TEXT)
             ?: ex.getCharSequence(Notification.EXTRA_INFO_TEXT))?.toString()?.trim()
         if (title.isNullOrEmpty() && text.isNullOrEmpty()) return
+
+        // Αν τίποτα δεν άλλαξε από τον προηγούμενο έλεγχο, δεν ξανασχεδιάζουμε
+        val sig = "${sbn.key}|${sbn.postTime}|$title|$text|$sub"
+        if (sig == lastSig && NavState.active) return
+        lastSig = sig
 
         NavState.title = title?.ifEmpty { null }
         NavState.text = text?.ifEmpty { null }

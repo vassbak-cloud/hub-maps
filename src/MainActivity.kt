@@ -49,6 +49,8 @@ class MainActivity : Activity(), LocationListener {
     private val tick = object : Runnable {
         override fun run() {
             hud.gpsOk = System.currentTimeMillis() - lastFix < 4000
+            // Έλεγχος της ειδοποίησης του Maps κάθε δευτερόλεπτο
+            if (!MapsListener.poll() && hasNotifAccess()) rebindListener()
             hud.invalidate()
             main.postDelayed(this, 1000)
         }
@@ -156,6 +158,19 @@ class MainActivity : Activity(), LocationListener {
     }
 
     // ---------- Άδειες / οδηγός πρώτης χρήσης ----------
+
+    private var lastRebind = 0L
+
+    /** Αν το Android έχει «κοιμίσει» τον αναγνώστη ειδοποιήσεων, τον ξυπνάμε. */
+    private fun rebindListener() {
+        val now = System.currentTimeMillis()
+        if (now - lastRebind < 10_000) return
+        lastRebind = now
+        try {
+            android.service.notification.NotificationListenerService.requestRebind(
+                android.content.ComponentName(this, MapsListener::class.java))
+        } catch (_: Exception) { }
+    }
 
     private fun hasNotifAccess(): Boolean {
         val s = Settings.Secure.getString(contentResolver, "enabled_notification_listeners") ?: return false
